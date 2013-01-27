@@ -23,7 +23,7 @@ public class AsyncTemplateTest {
 	private SomeService someService = new SomeService();
 	
 	@Test
-	public void test() {
+	public void test() throws InterruptedException {
 		long start = System.currentTimeMillis();
 		
 		AsyncHolder<String> holder1 = template.exec(new AsyncCallback<String>() {
@@ -33,28 +33,10 @@ public class AsyncTemplateTest {
 			}
 		});
 		
-		AsyncHolder<String> holder2 = template.exec(new AsyncCallback<String>() {
-			public String execute() {
-				// sleep 1000 ms 异步执行不阻塞主线程
-				return someService.getFromDatabase(1000L);
-			}
-		});
-		
-		AsyncHolder<String> holder3 = template.exec(new AsyncCallback<String>() {
-			public String execute() {
-				// sleep 1000 ms 异步执行不阻塞主线程
-				return someService.getFromDatabase(1000L);
-			}
-		});
-		
-		// sleep 1000 ms 在主线程中执行
-		someService.getFromRemoteApp(1000L);
-		
+		// 在主线程中执行业务操作，假设耗时1秒
+		Thread.sleep(1000L);
 		
 		assertEquals("this is from remote app", holder1.getResult());
-		assertEquals("this is from database", holder2.getResult());
-		assertEquals("this is from database", holder3.getResult());
-		
 		
 		long totalCost = System.currentTimeMillis()  - start;
 
@@ -63,11 +45,11 @@ public class AsyncTemplateTest {
 		// 总执行时间一定大于1000ms
 		assertTrue(999 < totalCost);
 		
-		// 并发执行后，总时间一定小于4000ms
-		assertTrue(totalCost < 4000);
+		// 并发执行后，总时间一定小于2000ms
+		assertTrue(totalCost < 2000);
 		
-		// 本例并发执行后，总时间应该明显小于4000ms
-		assertTrue(totalCost < 1500);
+		// 本例并发执行后，总时间应该明显小于2000ms
+		assertTrue(totalCost < 1100);
 		
 		AsyncTemplate.printStatus();
 	}
